@@ -17,22 +17,30 @@ export class Category extends Entity {
   name: string;
 
   @property({
+    type: 'string',
+    required: false,
+    default: '',
+  })
+  description: string;
+
+  @property({
     type: 'boolean',
     required: false,
+    default: true,
   })
-  is_active = true;
+  is_active: boolean;
 
   @property({
     type: 'date',
     required: true,
   })
-  created_at: Date;
+  created_at: string;
 
   @property({
     type: 'date',
     required: true,
   })
-  updated_at: Date;
+  updated_at: string;
 
   // Indexer property to allow additional data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

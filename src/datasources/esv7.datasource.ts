@@ -30,6 +30,9 @@ const config = {
         },
       },
     },
+    description: {
+      type: 'text',
+    },
     is_active: {
       type: 'boolean',
     },
