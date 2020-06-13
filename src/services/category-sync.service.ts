@@ -1,36 +1,24 @@
 import {bind, BindingScope} from '@loopback/core';
 import {repository} from '@loopback/repository';
-import {ConsumeMessage} from 'amqplib';
+import {Message} from 'amqplib';
 import {rabbitmqSubscribe} from '../decorators/rabbitmq-subscribe.decorator';
 import {CategoryRepository} from '../repositories';
+import {BaseModelSyncService} from './base-model-sync.service';
 
-@bind({scope: BindingScope.TRANSIENT})
-export class CategorySyncService {
+@bind({scope: BindingScope.SINGLETON})
+export class CategorySyncService extends BaseModelSyncService {
   constructor(
-    @repository(CategoryRepository) private categoryRepo: CategoryRepository,
-  ) {}
+    @repository(CategoryRepository) private repo: CategoryRepository,
+  ) {
+    super();
+  }
 
   @rabbitmqSubscribe({
     exchange: 'amq.topic',
-    queue: 'micro-catalog/sync-category',
+    queue: 'micro-catalog/sync-videos/category',
     routingKey: 'model.category.*',
   })
-  async handler({data, message}: {data: any; message: ConsumeMessage}) {
-    const [, event] = message.fields.routingKey.split('.').slice(1);
-    console.log(data);
-
-    switch (event) {
-      case 'created':
-        await this.categoryRepo.create(data);
-        break;
-      case 'updated':
-        await this.categoryRepo.updateById(data.id, data);
-        break;
-      case 'deleted':
-        await this.categoryRepo.deleteById(data.id);
-        break;
-      default:
-        break;
-    }
+  async handler({data, message}: {data: any; message: Message}) {
+    await this.sync({repo: this.repo, data, message});
   }
 }

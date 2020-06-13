@@ -7,7 +7,7 @@ import {
   ChannelWrapper,
   connect,
 } from 'amqp-connection-manager';
-import {Channel, ConfirmChannel, Options} from 'amqplib';
+import {Channel, ConfirmChannel, Options, Message} from 'amqplib';
 import {
   RabbitmqSubscribeMetadata,
   RABBITMQ_SUBSCRIBE_DECORATOR,
@@ -19,6 +19,13 @@ export interface RabbitmqConfig {
   uri: string;
   connOptions?: AmqpConnectionManagerOptions;
   exchanges?: {name: string; type: string; options?: Options.AssertExchange}[];
+  defaultHandlerError?: ResponseEnum;
+}
+
+export enum ResponseEnum {
+  ACK = 0,
+  REQUEUE = 1,
+  NACK = 2,
 }
 
 export class RabbitmqServer extends Context implements Server {
@@ -166,15 +173,42 @@ export class RabbitmqServer extends Context implements Server {
           } catch (error) {
             data = null;
           }
-          console.log(data);
-          await method({data, message, channel});
-          channel.ack(message);
+
+          const responseType = await method({data, message, channel});
+          this.dispatchResponse(channel, message, responseType);
         }
       } catch (e) {
         console.log(e);
         // Definir politica de resposta
+        if (!message) {
+          return;
+        }
+
+        this.dispatchResponse(
+          channel,
+          message,
+          this.config?.defaultHandlerError,
+        );
       }
     });
+  }
+
+  private dispatchResponse(
+    channel: Channel,
+    message: Message,
+    responseType?: ResponseEnum,
+  ) {
+    switch (responseType) {
+      case ResponseEnum.REQUEUE:
+        channel.nack(message, false, true);
+        break;
+      case ResponseEnum.NACK:
+        channel.nack(message, false, false);
+        break;
+      case ResponseEnum.ACK:
+      default:
+        channel.ack(message);
+    }
   }
 
   async stop(): Promise<void> {

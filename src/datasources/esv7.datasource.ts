@@ -30,6 +30,9 @@ const config = {
         },
       },
     },
+    type: {
+      type: 'byte',
+    },
     description: {
       type: 'text',
     },
