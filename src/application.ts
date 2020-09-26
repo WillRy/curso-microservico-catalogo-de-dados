@@ -6,8 +6,10 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
 import {RabbitmqServer} from './servers';
-import {RestExplorerComponent} from './components';
+import {RestExplorerComponent, ValidatorsComponent} from './components';
 import {RestExplorerBindings} from '@loopback/rest-explorer';
+import {ValidatorService} from './services/validator.service';
+import {Category} from './models';
 
 export class MicroCatalogApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(Application)),
@@ -17,7 +19,10 @@ export class MicroCatalogApplication extends BootMixin(
 
     // Set up the custom sequence
     options.rest.sequence = MySequence;
+
     this.component(RestComponent);
+    this.component(ValidatorsComponent);
+
     const restServer = this.getSync<RestServer>('servers.RestServer');
     // Set up default home page
     restServer.static('/', path.join(__dirname, '../public'));
@@ -41,4 +46,21 @@ export class MicroCatalogApplication extends BootMixin(
 
     this.servers([RabbitmqServer]);
   }
+
+  // async boot() {
+  //   await super.boot();
+  //   const validator = this.getSync<ValidatorService>(
+  //     'services.ValidatorService',
+  //   );
+  //   try {
+  //     await validator.validate({
+  //       data: {
+  //         id: '88db63b5-b064-40d7-ab0a-e7f71e5e05ec',
+  //       },
+  //       entityClass: Category,
+  //     });
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // }
 }
