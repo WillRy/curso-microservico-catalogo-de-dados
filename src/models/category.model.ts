@@ -7,19 +7,29 @@ export class Category extends Entity {
     id: true,
     generated: false,
     required: true,
+    jsonSchema: {
+      exists: ['Category', 'id'],
+    },
   })
   id: string;
 
   @property({
     type: 'string',
     required: true,
+    jsonSchema: {
+      minLength: 1,
+      maxLength: 255,
+    },
   })
   name: string;
 
   @property({
     type: 'string',
     required: false,
-    default: '',
+    jsonSchema: {
+      nullable: true,
+    },
+    default: null,
   })
   description: string;
 
