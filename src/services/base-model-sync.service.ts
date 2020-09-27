@@ -1,5 +1,5 @@
 import {bind, /* inject, */ BindingScope} from '@loopback/core';
-import {DefaultCrudRepository} from '@loopback/repository';
+import {DefaultCrudRepository, EntityNotFoundError} from '@loopback/repository';
 import {Message} from 'amqplib';
 import {pick} from 'lodash';
 import {ValidatorService} from './validator.service';
@@ -57,5 +57,47 @@ export abstract class BaseModelSyncService {
       ...(exists && {options: {partial: true}}),
     });
     return exists ? repo.updateById(id, entity) : repo.create(entity);
+  }
+
+  protected async syncRelations({
+    id,
+    relation,
+    repo,
+    relationIds,
+    repoRelation,
+    message,
+  }: {
+    id: string;
+    relation: string;
+    relationIds: Array<string>;
+    repo: DefaultCrudRepository<any, any>;
+    repoRelation: DefaultCrudRepository<any, any>;
+    message: Message;
+  }) {
+    //pega campos necessários no campo nested(através dos metadados)
+    const fieldsRelation = Object.keys(
+      repo.modelClass.definition.properties[relation].jsonSchema.items
+        .properties,
+    ).reduce((obj: any, field: string) => {
+      obj[field] = true;
+      return obj;
+    }, {});
+
+    const collection = await repoRelation.find({
+      where: {
+        or: relationIds.map((idRelation) => ({id: idRelation})),
+      },
+      fields: fieldsRelation,
+    });
+    if (!collection.length) {
+      const error = new EntityNotFoundError(
+        repoRelation.entityClass,
+        relationIds,
+      );
+      error.name = 'EntityNotFound';
+      throw error;
+    }
+
+    await repo.updateById(id, {[relation]: collection});
   }
 }

@@ -45,7 +45,6 @@ export class ValidatorService {
       {},
     );
 
-    console.log(globalSchemas, 'asdf');
     await validateRequestBody(
       {value: data, schema: schemaRef},
       {required: true, content: {}},
