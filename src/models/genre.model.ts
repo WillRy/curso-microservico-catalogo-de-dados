@@ -1,4 +1,5 @@
 import {Entity, model, property} from '@loopback/repository';
+import {SmallCategory} from './category.model';
 
 @model({settings: {strict: false}})
 export class Genre extends Entity {
@@ -38,6 +39,29 @@ export class Genre extends Entity {
     required: true,
   })
   updated_at: string;
+
+  @property({
+    type: 'object', //dá bug no lb4 em deixar como array
+    jsonSchema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+          },
+          name: {
+            type: 'string',
+          },
+          is_active: {
+            type: 'boolean',
+          },
+        },
+        uniqueItems: true,
+      },
+    },
+  })
+  categories: SmallCategory;
 
   // Define well-known properties here
 
