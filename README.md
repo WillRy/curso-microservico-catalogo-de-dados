@@ -1,6 +1,6 @@
 # CodeFlix - Microserviço: Catalogo
 
-Este microserviço foi desenvolvido no curso:
+Este microserviço está sendo desenvolvido no curso: (Ainda em andamento)
 
 **Desenvolvimento de Aplicações Modernas e Escaláveis com Microserviços** da **Code Education**
 
